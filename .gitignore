@@ -1,0 +1,19 @@
+# Secrets - NEVER commit these
+credentials.txt
+reference/credentials.txt
+auth.json
+reference/auth.json
+
+# Temp files banaye jaate hain run ke waqt
+.login-fill.js
+.flow-run.js
+
+# Python virtualenv / cache
+.venv/
+__pycache__/
+*.pyc
+
+# playwright-cli logs/snapshots
+.playwright-cli/
+reference/.playwright-cli/
+reference/.playwright/
