@@ -14,6 +14,7 @@ LOGIN_BUTTON = "#submitBtn"
 CAPTCHA_ERROR_TEXT = "Capatcha text does not match"  # site's own spelling
 
 
+
 def _fill_credentials(page: Page) -> None:
     page.fill(USERNAME_INPUT, credentials.USERNAME)
     page.fill(PASSWORD_INPUT, credentials.PASSWORD)
