@@ -1,3 +1,5 @@
+import glob
+import importlib.util
 import os
 import subprocess
 import sys
@@ -15,22 +17,37 @@ if _VENV_PYTHON and os.path.normcase(sys.executable) != os.path.normcase(_VENV_P
 from playwright.sync_api import sync_playwright
 
 import config
-import login
 
-# Flow ke steps yahan order me add hote jaayenge (login me hi captcha solve ho jaata hai).
-STEPS = [
-    login.run,
-    # aage ke steps yahan add karo, jaise reference (ECHS-automation) me pop_up.run, claim_status_query.run
-]
+# ---- workflow/ folder ke saare steps, FILENAME ke order me (01_, 02_, ...) khud load hote hain.
+# Naya step add karna ho to bas workflow/ me ek numbered file daalo jisme run(page) ho.
+WORKFLOW_DIR = os.path.join(_HERE, "workflow")
+
+
+def load_steps():
+    steps = []
+    for path in sorted(glob.glob(os.path.join(WORKFLOW_DIR, "*.py"))):
+        name = os.path.basename(path)
+        if name.startswith("__"):
+            continue
+        spec = importlib.util.spec_from_file_location(name[:-3], path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        if hasattr(mod, "run"):
+            steps.append((name[:-3], mod.run))
+    return steps
 
 
 def main() -> None:
+    steps = load_steps()
+    print(">> Workflow steps (order):", ", ".join(n for n, _ in steps))
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=config.HEADLESS, slow_mo=config.SLOW_MO_MS)
         context = browser.new_context(ignore_https_errors=True, no_viewport=True)
         page = context.new_page()
         try:
-            for step in STEPS:
+            for name, step in steps:
+                print(f"\n=== STEP: {name} ===")
                 step(page)
         finally:
             try:
